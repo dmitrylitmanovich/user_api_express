@@ -1,6 +1,39 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/user');
+
+const usersController = require('../controllers/users_controller');
+
+/**
+ * @swagger
+ *   components:
+ *     schemas:
+ *       User:
+ *         type: object
+ *         properties:
+ *           _id:
+ *             type: string
+ *             description: The user's Id.
+ *             example: 65161b5e1c26ef7d109f2c57
+ *           name:
+ *             type: string
+ *             description: The user's name.
+ *             example: John Doe
+ *           email:
+ *             type: string
+ *             description: The user's email.
+ *             example: jd@example.com 
+ *       newUser:
+ *         type: object
+ *         properties:
+ *           name:
+ *             type: string
+ *             description: The user's name.
+ *             example: John Doe
+ *           email:
+ *             type: string
+ *             description: The user's email.
+ *             example: jd@example.com 
+ */
 
 /**
  * @swagger
@@ -8,28 +41,17 @@ const User = require('../models/user');
  *   get:
  *     summary: Retrieve a list of users.
  *     description: Retrieve a list of users. Can be used to populate a list of fake users when prototyping or testing an API.
+ *     responses:
+ *       200:
+ *         description: A list of users.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User'
 */
-router.get('/', async (req, res) => {
-  try {
-    let query = User.find();
-
-    if (req.query.sort) {
-      const sortField = req.query.sort;
-      query = query.sort(sortField);
-    }
-
-    if (req.query.filter) {
-      const filterField = req.query.filter;
-      query = query.where(filterField);
-    }
-
-    const users = await query.exec();
-    res.json(users);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
+router.get('/', usersController.index);
 
 /**
  * @swagger
@@ -41,21 +63,18 @@ router.get('/', async (req, res) => {
  *       - in: path
  *         name: id
  *         required: true
- *         description: Numeric ID of the user to retrieve.
+ *         description: ID of the user to retrieve.
  *         schema:
- *           type: integer
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: An user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
 */
-router.get('/:userId', async (req, res) => {
-  try {
-    const user = await User.findById(req.params.userId);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    res.json(user);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+router.get('/:userId', usersController.show);
 
 /**
  * @swagger
@@ -63,16 +82,21 @@ router.get('/:userId', async (req, res) => {
  *   post:
  *     summary: Create an user.
  *     description: Create an user.
-*/
-router.post('/', async (req, res) => {
-  const user = new User(req.body);
-  try {
-    const newUser = await user.save();
-    res.status(201).json(newUser);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/newUser'   
+ *     responses:
+ *       201:
+ *         description: Newly created user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ */
+router.post('/', usersController.create);
 
 /**
  * @swagger
@@ -84,24 +108,24 @@ router.post('/', async (req, res) => {
  *       - in: path
  *         name: id
  *         required: true
- *         description: Numeric ID of the user to update.
+ *         description: ID of the user to update.
  *         schema:
- *           type: integer
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/newUser'  
+ *     responses:
+ *       200:
+ *         description: An updated user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
 */
-router.put('/:userId', async (req, res) => {
-  try {
-    const user = await User.findByIdAndUpdate(req.params.userId, req.body, {
-      new: true,
-    })
-    ;
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    res.json(user);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
+router.put('/:userId', usersController.update);
 
 /**
  * @swagger
@@ -113,20 +137,21 @@ router.put('/:userId', async (req, res) => {
  *       - in: path
  *         name: id
  *         required: true
- *         description: Numeric ID of the user to remove.
+ *         description: ID of the user to remove.
  *         schema:
- *           type: integer
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: User has been removed.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: User removed
 */
-router.delete('/:userId', async (req, res) => {
-  try {
-    const user = await User.findByIdAndRemove(req.params.userId);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    res.json({ message: 'User removed' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+router.delete('/:userId', usersController.destroy);
 
 module.exports = router;

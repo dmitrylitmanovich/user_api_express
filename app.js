@@ -28,8 +28,6 @@ mongoose.connect('mongodb://localhost/users', {
   useUnifiedTopology: true
 });
 
-const User = require('./models/user');
-
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
