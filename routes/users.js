@@ -40,7 +40,7 @@ const usersController = require('../controllers/users_controller');
  * /api/users:
  *   get:
  *     summary: Retrieve a list of users.
- *     description: Retrieve a list of users. Can be used to populate a list of fake users when prototyping or testing an API.
+ *     description: Retrieve a list of users.
  *     responses:
  *       200:
  *         description: A list of users.
