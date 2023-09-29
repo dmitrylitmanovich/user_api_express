@@ -11,12 +11,25 @@ const User = require('../models/user');
 */
 router.get('/', async (req, res) => {
   try {
-    const users = await User.find();
+    let query = User.find();
+
+    if (req.query.sort) {
+      const sortField = req.query.sort;
+      query = query.sort(sortField);
+    }
+
+    if (req.query.filter) {
+      const filterField = req.query.filter;
+      query = query.where(filterField);
+    }
+
+    const users = await query.exec();
     res.json(users);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 /**
  * @swagger
